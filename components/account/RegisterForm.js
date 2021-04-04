@@ -3,7 +3,9 @@ import React,{useState} from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Input, Button, Icon } from 'react-native-elements'
 import { validateEmail } from '../../utils/helpers'
-
+import {useNavigation} from '@react-navigation/native'
+import {registerUser} from '../../utils/actions'
+import Loading from '../Loading'
 
 export default function RegisterForm() {
     const [showPassword, setshowPassword] = useState(false)
@@ -12,6 +14,9 @@ export default function RegisterForm() {
     const [errorEmail, setErrorEmail] = useState("")
     const [errorPassword, setErrorPassword] = useState("")
     const [errorConfirm, setErrorConfirm] = useState("")
+    const [loading, setLoading] = useState(false)
+
+    const navigation = useNavigation()
 
     const defaultFormValues = () => {
         return {email: "", password:"", confirm:""}
@@ -21,12 +26,23 @@ export default function RegisterForm() {
         setFormData({...formData,[type]: e.nativeEvent.text})
     }
 
-    const registerUser = () => {
+    const doRegisterUser = async () => {
+        
+
         if (!validateData()) {
             return;
         }
 
-        console.log("Fuck yeah...")
+        setLoading(true)
+        const result = await registerUser(formData.email,formData.password)
+        setLoading(false)
+
+        if(!result.statusResponse){
+            setErrorEmail(result.error)
+            return
+        }
+
+        navigation.navigate("account")
     }
 
     const validateData = () => {
@@ -106,7 +122,11 @@ export default function RegisterForm() {
                 title="Registrar nuevo Usuario"
                 containerStyle={styles.btnContainer}
                 buttonStyle={styles.btn}
-                onPress={()=>registerUser()}
+                onPress={()=>doRegisterUser()}
+            />
+            <Loading
+                isVisible={loading}
+                text="Creando Cuenta..."
             />
         </View>
     )
